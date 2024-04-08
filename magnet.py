@@ -287,43 +287,43 @@ class MagNet3Frames(object):
         """
         Assume a_0 = 1
         """
-        self.input_image = tf.placeholder(tf.float32,
+        self.input_image = tf.compat.v1.placeholder(tf.float32,
                                           [1, self.image_height,
                                               self.image_width,
                                            self.n_channels],
                                           name='input_image')
-        self.filtered_enc = tf.placeholder(tf.float32,
+        self.filtered_enc = tf.compat.v1.placeholder(tf.float32,
                                            [1, None, None,
                                             self.shape_dims],
                                            name='filtered_enc')
-        self.out_texture_enc = tf.placeholder(tf.float32,
+        self.out_texture_enc = tf.compat.v1.placeholder(tf.float32,
                                               [1, None, None,
                                                self.texture_dims],
                                               name='out_texture_enc')
-        self.ref_shape_enc = tf.placeholder(tf.float32,
+        self.ref_shape_enc = tf.compat.v1.placeholder(tf.float32,
                                             [1, None, None,
                                              self.shape_dims],
                                             name='ref_shape_enc')
-        self.amplification_factor = tf.placeholder(tf.float32, [None],
+        self.amplification_factor = tf.compat.v1.placeholder(tf.float32, [None],
                                                    name='amplification_factor')
-        with tf.variable_scope('ynet_3frames'):
-            with tf.variable_scope('encoder'):
+        with tf.compat.v1.variable_scope('ynet_3frames'):
+            with tf.compat.v1.variable_scope('encoder'):
                 self.texture_enc, self.shape_rep = \
                     self._encoder(self.input_image)
-            with tf.variable_scope('manipulator'):
+            with tf.compat.v1.variable_scope('manipulator'):
                 # set encoder a to zero because we do temporal filtering
                 # instead of taking the difference.
                 self.out_shape_enc = self.manipulator(0.0,
                                                       self.filtered_enc,
                                                       self.amplification_factor)
                 self.out_shape_enc += self.ref_shape_enc - self.filtered_enc
-            with tf.variable_scope('decoder'):
+            with tf.compat.v1.variable_scope('decoder'):
                 self.output_image = tf.clip_by_value(
                                         self._decoder(self.out_texture_enc,
                                                       self.out_shape_enc),
                                         -1.0, 1.0)
 
-        self.saver = tf.train.Saver()
+        self.saver = tf.compat.v1.train.Saver()
 
     def run_temporal(self,
                      checkpoint_dir,
@@ -387,8 +387,8 @@ class MagNet3Frames(object):
             self.image_height = image_height
             # Figure out image dimension
             self._build_IIR_filtering_graphs()
-            ginit_op = tf.global_variables_initializer()
-            linit_op = tf.local_variables_initializer()
+            ginit_op = tf.compat.v1.global_variables_initializer()
+            linit_op = tf.compat.v1.local_variables_initializer()
             self.sess.run([ginit_op, linit_op])
 
             if self.load(checkpoint_dir):
@@ -587,7 +587,7 @@ class MagNet3Frames(object):
                                                                    frameA],
                                                                   axis=3),
                                                         max_outputs=2)
-        self.saver = tf.train.Saver(max_to_keep=train_config["ckpt_to_keep"])
+        self.saver = tf.compat.v1.train.Saver(max_to_keep=train_config["ckpt_to_keep"])
 
     # Loss function
     def _loss_function(self, a, b, train_config):
@@ -610,8 +610,8 @@ class MagNet3Frames(object):
                       var_list=tf.trainable_variables(),
                       global_step=self.global_step)
 
-        ginit_op = tf.global_variables_initializer()
-        linit_op = tf.local_variables_initializer()
+        ginit_op = tf.compat.v1.global_variables_initializer()
+        linit_op = tf.compat.v1.local_variables_initializer()
         self.sess.run([ginit_op, linit_op])
 
         self.writer = tf.summary.FileWriter(train_config["logs_dir"],
